@@ -16,7 +16,7 @@ See releases to access the latest `sqlite3` database with PEY Co-op job postings
 To get started with this project, clone the repository and install the necessary Python dependencies.
 
 ```bash
-git clone https://github.com/username/uoft-pey-coop-job-postings-analysis.git
+git clone https://github.com/sadmanca/uoft-pey-coop-job-postings-analysis.git
 cd uoft-pey-coop-job-postings-analysis
 pip install -r requirements.txt
 ```
