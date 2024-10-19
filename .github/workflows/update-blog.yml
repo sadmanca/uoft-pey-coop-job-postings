@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "2024"
+  workflow_dispatch:
 
 jobs:
   parse-and-commit:
