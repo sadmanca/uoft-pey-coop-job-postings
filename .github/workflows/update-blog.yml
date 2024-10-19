@@ -57,12 +57,14 @@ jobs:
         git add data/PEYJobPosting2024.json
         git commit -m "Add updated PEY job postings data"
 
-    - name: Push changes to the blog repo
-      env:
-        GH_BLOG_TOKEN: ${{ secrets.GH_BLOG_TOKEN }}
+    - name: Set up authentication for pushing changes
       run: |
         cd blog-repo
-        git remote set-url origin https://$GH_BLOG_TOKEN@github.com/sadmanca/blog.git
+        git remote set-url origin https://x-access-token:${{ secrets.GH_BLOG_TOKEN }}@github.com/sadmanca/blog.git
+
+    - name: Push changes to the blog repo
+      run: |
+        cd blog-repo
         git push -u origin github-actions-test
 
     - name: Send notification via curl
