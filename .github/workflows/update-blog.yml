@@ -58,9 +58,11 @@ jobs:
         git commit -m "Add updated PEY job postings data"
 
     - name: Push changes to the blog repo
+      env:
+        GH_BLOG_TOKEN: ${{ secrets.GH_BLOG_TOKEN }}
       run: |
         cd blog-repo
-        git push -u origin github-actions-test
+        git push -u https://$GH_BLOG_TOKEN@github.com/sadmanca/blog.git github-actions-test
 
     - name: Send notification via curl
       run: |
