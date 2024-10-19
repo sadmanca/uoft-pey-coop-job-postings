@@ -62,7 +62,8 @@ jobs:
         GH_BLOG_TOKEN: ${{ secrets.GH_BLOG_TOKEN }}
       run: |
         cd blog-repo
-        git push -u https://$GH_BLOG_TOKEN@github.com/sadmanca/blog.git github-actions-test
+        git remote set-url origin https://$GH_BLOG_TOKEN@github.com/sadmanca/blog.git
+        git push -u origin github-actions-test
 
     - name: Send notification via curl
       run: |
