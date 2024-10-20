@@ -8,7 +8,6 @@ on:
 jobs:
   parse-and-commit:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout the 2024 branch
       uses: actions/checkout@v3
@@ -27,40 +26,26 @@ jobs:
         cd blog-repo
         git checkout pey-2024-test
 
-    - name: Get latest commit hash from pey-archive
-      id: get_commit_hash
+    - name: Check for new commits
+      id: check_commits
       run: |
         cd pey-archive
-        echo "commit_hash=$(git rev-parse HEAD)" >> $GITHUB_ENV
+        git fetch origin main  # Fetch the latest changes
+        NEW_COMMITS=$(git rev-list HEAD...origin/main --count)
+        echo "new_commits=$NEW_COMMITS" >> $GITHUB_ENV
 
-    - name: Load previous commit hash from cache
-      id: load_cache
-      run: |
-        echo "Loading previous commit hash from cache..."
-        echo "prev_commit_hash=$(cat ${{ github.workspace }}/commit_hash.txt || echo 'none')" >> $GITHUB_ENV
-
-    - name: Check if the commit has changed
-      id: check_commit
-      run: |
-        if [ "${{ env.prev_commit_hash }}" == "none" ]; then
-          echo "No previous commit hash found. Will run processing code."
-          echo "commit_changed=true" >> $GITHUB_ENV
-        elif [ "${{ env.commit_hash }}" != "${{ env.prev_commit_hash }}" ]; then
-          echo "Commit hash has changed. Will run processing code."
-          echo "commit_changed=true" >> $GITHUB_ENV
-        else
-          echo "Commit hash has not changed. Skipping processing code."
-          echo "commit_changed=false" >> $GITHUB_ENV
-        fi
+    - name: Skip if no new commits
+      if: env.new_commits == '0'
+      run: echo "No new commits found. Skipping the workflow."
 
     - name: Set up Python
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
     - name: Cache pip dependencies
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
@@ -69,21 +54,26 @@ jobs:
           ${{ runner.os }}-pip-
 
     - name: Install dependencies
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: pip install -r requirements.txt
 
+    - name: Delete existing JSON file
+      if: env.new_commits != '0'  # Only run if there are new commits
+      run: |
+        rm -f blog-repo/data/PEYJobPosting2024.json
+
     - name: Run the parsing script
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: python parse_folder_to_db.py -v -d "pey-archive/postings" -o "blog-repo/data/PEYJobPosting2024.json"
 
     - name: Configure git for commit
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
     - name: Commit the new JSON file with timestamp
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: |
         cd blog-repo
         timestamp=$(date)
@@ -91,30 +81,25 @@ jobs:
         git commit -m "Add updated PEY job postings data - $timestamp"
 
     - name: View git log
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: |
         cd blog-repo
         git log --oneline
 
     - name: Set up authentication for pushing changes
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: |
         cd blog-repo
         git remote set-url origin https://x-access-token:${{ secrets.GH_BLOG_TOKEN }}@github.com/sadmanca/blog.git
 
     - name: Push changes to the blog repo
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: |
         cd blog-repo
         git push -u origin pey-2024-test
 
-    - name: Save current commit hash to cache
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
-      run: |
-        echo "${{ env.commit_hash }}" > ${{ github.workspace }}/commit_hash.txt
-
     - name: Send notification via curl
-      if: env.commit_changed == 'true'  # Only run if the commit has changed
+      if: env.new_commits != '0'  # Only run if there are new commits
       run: |
         current_time=$(date)
         curl -d "$current_time" ntfy.sh/sadmanca-uoft-pey-coop-jobs-dashboard-2024-2025
