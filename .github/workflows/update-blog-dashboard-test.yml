@@ -20,17 +20,15 @@ jobs:
       run: git clone --depth 1 https://github.com/sadmanca/2024-25-pey-archive pey-archive
 
     - name: Clone the blog repo (shallow clone)
-      run: git clone --depth 1 https://github.com/sadmanca/blog blog-repo
-
-    - name: Pull latest changes from remote
       run: |
+        git clone --depth 1 https://github.com/sadmanca/blog blog-repo
         cd blog-repo
-        git pull origin pey-2024-test || echo "No changes to pull or merge conflict occurred."
+        git fetch --all --depth 1
 
     - name: Checkout pey-2024-test branch in blog repo
       run: |
         cd blog-repo
-        git checkout -b pey-2024-test
+        git checkout pey-2024-test
 
     - name: View git log
       run: |
