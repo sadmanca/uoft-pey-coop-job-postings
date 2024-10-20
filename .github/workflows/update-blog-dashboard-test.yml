@@ -22,10 +22,15 @@ jobs:
     - name: Clone the blog repo (shallow clone)
       run: git clone --depth 1 https://github.com/sadmanca/blog blog-repo
 
+    - name: Pull latest changes from remote
+      run: |
+        cd blog-repo
+        git pull origin pey-2024-test || echo "No changes to pull or merge conflict occurred."
+
     - name: Checkout pey-2024-test branch in blog repo
       run: |
         cd blog-repo
-        git checkout -B pey-2024-test
+        git checkout -b pey-2024-test
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -62,11 +67,6 @@ jobs:
       run: |
         cd blog-repo
         git remote set-url origin https://x-access-token:${{ secrets.GH_BLOG_TOKEN }}@github.com/sadmanca/blog.git
-
-    - name: Pull latest changes from remote
-      run: |
-        cd blog-repo
-        git pull origin pey-2024-test --rebase || echo "No changes to pull or merge conflict occurred."
 
     - name: Push changes to the blog repo
       run: |
