@@ -19,11 +19,9 @@ jobs:
     - name: Clone the 2024-25 PEY archive repo (shallow clone)
       run: git clone --depth 1 https://github.com/sadmanca/2024-25-pey-archive pey-archive
 
-    - name: Clone the blog repo (shallow clone)
+    - name: Clone the blog repo
       run: |
-        git clone --depth 1 https://github.com/sadmanca/blog blog-repo
-        cd blog-repo
-        git fetch --all --depth 1
+        git clone https://github.com/sadmanca/blog blog-repo
 
     - name: Checkout pey-2024-test branch in blog repo
       run: |
