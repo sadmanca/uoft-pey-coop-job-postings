@@ -63,6 +63,11 @@ jobs:
         cd blog-repo
         git remote set-url origin https://x-access-token:${{ secrets.GH_BLOG_TOKEN }}@github.com/sadmanca/blog.git
 
+    - name: Pull latest changes from remote
+      run: |
+        cd blog-repo
+        git pull origin pey-2024-test --rebase || echo "No changes to pull or merge conflict occurred."
+
     - name: Push changes to the blog repo
       run: |
         cd blog-repo
