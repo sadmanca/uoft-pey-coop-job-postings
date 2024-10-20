@@ -15,7 +15,7 @@ jobs:
         ref: 2024
 
     - name: Clone the 2024-25 PEY archive repo (shallow clone)
-      run: git clone --depth 1 https://github.com/CanadianDesk/2024-25-pey-archive pey-archive
+      run: git clone --depth 1 https://github.com/sadmanca/2024-25-pey-archive pey-archive
 
     - name: Clone the blog repo
       run: |
