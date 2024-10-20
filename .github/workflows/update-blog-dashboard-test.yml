@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - "2024"
-
   workflow_dispatch:
 
 jobs:
@@ -23,12 +22,17 @@ jobs:
     - name: Clone the blog repo (shallow clone)
       run: git clone --depth 1 https://github.com/sadmanca/blog blog-repo
 
+    - name: Checkout pey-2024-test branch in blog repo
+      run: |
+        cd blog-repo
+        git checkout -B pey-2024-test
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
-    - name: Cache dependencies
+    - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
@@ -47,16 +51,12 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Create a new branch if it doesn't exist
+    - name: Commit the new JSON file with timestamp
       run: |
         cd blog-repo
-        git checkout -B pey-2024-test
-
-    - name: Commit the new JSON file
-      run: |
-        cd blog-repo
+        timestamp=$(date)
         git add data/PEYJobPosting2024.json
-        git commit -m "Add updated PEY job postings data"
+        git commit -m "Add updated PEY job postings data - $timestamp"
 
     - name: Set up authentication for pushing changes
       run: |
