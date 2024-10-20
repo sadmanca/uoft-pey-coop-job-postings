@@ -32,6 +32,11 @@ jobs:
         cd blog-repo
         git checkout -b pey-2024-test
 
+    - name: View git log
+      run: |
+        cd blog-repo
+        git log --oneline
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -62,6 +67,11 @@ jobs:
         timestamp=$(date)
         git add data/PEYJobPosting2024.json
         git commit -m "Add updated PEY job postings data - $timestamp"
+
+    - name: View git log
+      run: |
+        cd blog-repo
+        git log --oneline
 
     - name: Set up authentication for pushing changes
       run: |
