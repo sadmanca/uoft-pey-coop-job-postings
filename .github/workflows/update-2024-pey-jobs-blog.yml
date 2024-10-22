@@ -1,0 +1,81 @@
+name: Check and Update 2024-2025 PEY Job Postings
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Runs every 30 minutes
+  workflow_dispatch:
+
+jobs:
+  parse-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout the 2024 branch
+      uses: actions/checkout@v3
+      with:
+        ref: 2024
+
+    - name: Clone the 2024-25 PEY archive repo (shallow clone)
+      run: git clone --depth 1 https://github.com/CanadianDesk/2024-25-pey-archive pey-archive
+
+    - name: Clone the blog repo
+      run: git clone https://github.com/sadmanca/blog blog-repo
+
+    - name: Checkout master branch in blog repo
+      run: |
+        cd blog-repo
+        git checkout master
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Configure git for commit
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Delete existing JSON file
+      run: |
+        rm -f blog-repo/data/PEYJobPosting2024.json
+
+    - name: Run the parsing script
+      run: python parse_folder_to_db.py -v -d "pey-archive/postings" -o "blog-repo/data/PEYJobPosting2024.json"
+
+    - name: Commit the new JSON file with timestamp
+      id: commit_changes
+      run: |
+        cd blog-repo
+        timestamp=$(date)
+        git add data/PEYJobPosting2024.json
+        git commit -m "Add updated PEY job postings data - $timestamp" || echo "No changes to commit"
+      continue-on-error: true
+
+    - name: Set up authentication for pushing changes
+      if: steps.commit_changes.outcome == 'success' && steps.commit_changes.conclusion != 'skipped'
+      run: |
+        cd blog-repo
+        git remote set-url origin https://x-access-token:${{ secrets.GH_BLOG_TOKEN }}@github.com/sadmanca/blog.git
+
+    - name: Push changes to the blog repo
+      if: steps.commit_changes.outcome == 'success' && steps.commit_changes.conclusion != 'skipped'
+      run: |
+        cd blog-repo
+        git push -u origin master
+
+    - name: Send notification via curl
+      if: steps.commit_changes.outcome == 'success' && steps.commit_changes.conclusion != 'skipped'
+      run: |
+        current_time=$(date)
+        curl -d "$current_time" ntfy.sh/sadmanca-uoft-pey-coop-jobs-dashboard-2024-2025
